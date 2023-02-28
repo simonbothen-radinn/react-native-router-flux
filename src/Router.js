@@ -6,6 +6,9 @@ import defaultStore from './defaultStore';
 import pathParser from './pathParser';
 
 class App extends React.Component {
+  hardwareBackPressSubscriber ;
+  urlSubscriber;
+
   static propTypes = {
     navigator: PropTypes.func,
     backAndroidHandler: PropTypes.func,
@@ -22,17 +25,17 @@ class App extends React.Component {
   };
 
   componentDidMount() {
-    BackHandler.addEventListener('hardwareBackPress', this.props.backAndroidHandler || this.onBackPress);
-
+    this.hardwareBackPressSubscriber = BackHandler.addEventListener('hardwareBackPress', this.props.backAndroidHandler || this.onBackPress);
+ 
     // If the app was "woken up" by an external route.
     Linking.getInitialURL().then(url => this.parseDeepURL(url));
     // Add an event listener for further deep linking.
-    Linking.addEventListener('url', this.handleDeepURL);
+    this.urlSubscriber = Linking.addEventListener('url', this.handleDeepURL);
   }
 
   componentWillUnmount() {
-    BackHandler.removeEventListener('hardwareBackPress', this.props.backAndroidHandler || this.onBackPress);
-    Linking.removeEventListener('url', this.handleDeepURL);
+    this.hardwareBackPressSubscriber.remove();
+    this.urlSubscriber.remove();
   }
 
   onBackPress = () => this.props.navigationStore.pop();
